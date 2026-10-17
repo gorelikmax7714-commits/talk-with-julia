@@ -1,8 +1,8 @@
 // Offline cache. Bump CACHE when shipping changes.
-const CACHE = 'twj-v2';
+const CACHE = 'twj-v3';
 const NETWORK_TIMEOUT_MS = 3000;
 const FILES = [
-  './', 'index.html', 'manifest.json', 'css/app.css', 'assets/icon.svg', 'assets/icon-180.png', 'assets/icon-512.png',
+  './', 'index.html', 'manifest.json', 'css/app.css', 'assets/icon.svg', 'assets/icon-180.png', 'assets/icon-192.png', 'assets/icon-512.png', 'js/install.js',
   'js/app.js', 'js/content.js', 'js/profile.js', 'js/match.js', 'js/srs.js', 'js/store.js',
   'js/lesson.js', 'js/speech.js', 'js/sfx.js', 'js/ui/dom.js', 'js/ui/julia.js', 'js/ui/nav.js',
   'js/screens/home.js', 'js/screens/onboarding.js', 'js/screens/book.js', 'js/screens/parent.js',

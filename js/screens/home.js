@@ -2,9 +2,48 @@
 import { UNITS, FINAL } from '../content.js';
 import { lessonList, nextLesson, progress, totalStars, isUnlocked, unitDone, currentStreak } from '../store.js';
 import { daysBetween, dueIds } from '../srs.js';
-import { esc, mount, on, today, sheet, starsText } from '../ui/dom.js';
+import { esc, mount, on, today, sheet, starsText, confetti } from '../ui/dom.js';
 import { navHtml, bindNav, openLesson } from '../ui/nav.js';
 import { sfx } from '../sfx.js';
+import { installState, promptInstall, onInstallChange } from '../install.js';
+
+const INSTALL_HELP = {
+  android: 'בכרום: לחצי על ⋮ למעלה, ואז על <b>"הוספה למסך הבית"</b>',
+  ios: 'בספארי: לחצי על כפתור השיתוף ⬆️ למטה, ואז על <b>"הוספה למסך הבית"</b>',
+};
+
+function installHtml(ctx) {
+  const st = installState();
+  if (ctx.state.settings.installHidden || st === 'installed' || st === 'none') return '';
+  const body = st === 'ready'
+    ? '<button class="btn mint" data-install>📲 הוסיפי למסך הבית</button>'
+    : `<div class="install-help">${INSTALL_HELP[st]}</div>`;
+  return `<section class="install-card">
+    <button class="install-x" data-install-hide aria-label="סגירה">✕</button>
+    <div class="install-title"><img src="assets/icon-192.png" alt="" width="44" height="44"> שימי את האפליקציה במסך הבית!</div>
+    <div class="install-sub">ככה תפתחי אותה בלחיצה אחת, כמו כל אפליקציה</div>
+    ${body}
+  </section>`;
+}
+
+function bindInstall(ctx) {
+  const slot = document.getElementById('install-slot');
+  if (!slot) return;
+  slot.innerHTML = installHtml(ctx);
+  on(slot, '[data-install]', 'click', async () => {
+    if (await promptInstall()) {
+      slot.innerHTML = '<section class="install-card"><div class="install-title">🎉 מעולה! האייקון נוסף למסך הבית</div></section>';
+      sfx.win();
+      confetti();
+    }
+  });
+  on(slot, '[data-install-hide]', 'click', () => {
+    ctx.update((s) => ({ ...s, settings: { ...s.settings, installHidden: true } }));
+    slot.innerHTML = '';
+  });
+}
+
+let unsubscribeInstall = null;
 
 const P0 = [34, 74];
 const P1 = [160, -14];
@@ -139,11 +178,15 @@ export function renderHome(ctx) {
     </header>
     ${countdownHtml(ctx)}
     ${todayHtml(ctx)}
+    <div id="install-slot"></div>
     <div class="section-title">🛂 הדרכון שלי</div>
     <div class="journey">${units.map((u, i) => unitRow(ctx, u, i, next?.unitId === u.id)).join('')}</div>
   </div>
   ${navHtml('home')}`);
   bindNav(root, ctx);
+  bindInstall(ctx);
+  unsubscribeInstall?.();
+  unsubscribeInstall = onInstallChange(() => bindInstall(ctx));
   on(root, '[data-start]', 'click', (e, el) => openLesson(ctx, lessonList().find((l) => l.id === el.dataset.start)));
   on(root, '[data-review]', 'click', (e, el) => {
     el.disabled = true;

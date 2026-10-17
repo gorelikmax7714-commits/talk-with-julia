@@ -4,6 +4,7 @@ import { UNITS, FINAL, findPhrase } from './content.js';
 import { profileVars, resolvePhrase, fill } from './profile.js';
 import { initSpeech, speak, unlockAudioOnFirstTap } from './speech.js';
 import { setSoundEnabled } from './sfx.js';
+import { initInstall } from './install.js';
 import { renderHome } from './screens/home.js';
 import { renderOnboarding } from './screens/onboarding.js';
 import { renderBook } from './screens/book.js';
@@ -56,6 +57,7 @@ const ctx = {
 
 function boot() {
   initSpeech();
+  initInstall();
   unlockAudioOnFirstTap();
   setSoundEnabled(state.settings.sound);
   ctx.go(state.onboarded ? 'home' : 'onboarding');
