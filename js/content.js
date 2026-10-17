@@ -17,7 +17,7 @@ export const UNITS = [
     dialogue: {
       turns: [
         { julia: "Hi! I'm {aunt}! What's your name?", he: 'היי! אני {auntHe}! איך קוראים לך?', answers: ['u1p2'], distract: ['u1p4'] },
-        { julia: 'Nice to meet you, {name}!', he: 'נעים להכיר, {nameHe}!', answers: ['u1p3'], distract: ['u1p5'] },
+        { julia: "I'm so happy to meet you, {name}!", he: 'אני כל כך שמחה להכיר אותך, {nameHe}!', answers: ['u1p3'], distract: ['u1p5'] },
         { julia: 'How are you?', he: 'מה שלומך?', answers: ['u1p5'], distract: ['u1p2'] },
         { julia: "I'm good too! I'm so happy to be here!", he: 'גם אני בסדר! אני כל כך שמחה להיות פה!', answers: ['u1p6'], distract: ['u1p4'] },
       ],
@@ -51,7 +51,7 @@ export const UNITS = [
     titleEn: 'All about me', titleHe: 'הכל עליי',
     phrases: [
       { id: 'u3p1', en: 'I am {ageEn} years old.', he: 'אני בת {age}.', tr: 'איי אם {ageTr} ירז אולד', emoji: '🎂' },
-      { id: 'u3p2', en: "I'm in fourth grade.", he: "אני בכיתה ד'.", tr: "איים אין פורת' גרייד", emoji: '🎒' },
+      { id: 'u3p2', en: "I'm in {gradeEn} grade.", he: 'אני בכיתה {gradeHe}.', tr: 'איים אין {gradeTr} גרייד', emoji: '🎒' },
       { id: 'u3p3', en: 'I live in {city}.', he: 'אני גרה ב{cityHe}.', tr: 'איי ליב אין {cityHe}', emoji: '🏠' },
       { id: 'u3p4', en: 'I speak Hebrew.', he: 'אני מדברת עברית.', tr: 'איי ספיק היברו', emoji: '🗣️' },
       { id: 'u3p5', en: "I'm learning English.", he: 'אני לומדת אנגלית.', tr: 'איים לרנינג אינגליש', emoji: '📚' },
@@ -97,8 +97,8 @@ export const UNITS = [
       { id: 'u5p1', en: 'I like {food}.', he: 'אני אוהבת {foodHe}.', tr: 'איי לייק {foodTr}', emoji: '{foodEmoji}' },
       { id: 'u5p2', en: 'My favorite color is {color}.', he: 'הצבע האהוב עליי הוא {colorHe}.', tr: 'מאי פייבוריט קאלר איז {colorTr}', emoji: '{colorEmoji}' },
       { id: 'u5p3', en: 'My favorite animal is the {animal}.', he: 'החיה האהובה עליי היא {animalHe}.', tr: 'מאי פייבוריט אנימל איז דה {animalTr}', emoji: '{animalEmoji}' },
-      { id: 'u5p4', en: 'Yes, I do!', he: 'כן, אני כן!', tr: 'יס, איי דו!', emoji: '👍' },
-      { id: 'u5p5', en: "No, I don't.", he: 'לא, אני לא.', tr: 'נו, איי דונט', emoji: '👎' },
+      { id: 'u5p4', en: 'Yes, I do!', he: 'כן, אני אוהבת!', tr: 'יס, איי דו!', emoji: '👍' },
+      { id: 'u5p5', en: "No, I don't.", he: 'לא, אני לא אוהבת.', tr: 'נו, איי דונט', emoji: '👎' },
       { id: 'u5p6', en: 'Do you like {food}?', he: 'את אוהבת {foodHe}?', tr: 'דו יו לייק {foodTr}?', emoji: '❓' },
     ],
     dialogue: {
@@ -122,15 +122,17 @@ export const UNITS = [
       { id: 'u6p4', en: "I'm cold.", he: 'קר לי.', tr: 'איים קולד', emoji: '🥶' },
       { id: 'u6p5', en: "I'm so happy you're here!", he: 'אני כל כך שמחה שאת פה!', tr: 'איים סו האפי יור היר!', emoji: '🥰' },
       { id: 'u6p6', en: 'I love you!', he: 'אני אוהבת אותך!', tr: 'איי לאב יו!', emoji: '❤️' },
+      { id: 'u6p7', en: 'Yes, I am!', he: 'כן, אני כן!', tr: 'יס, איי אם!', emoji: '👍' },
+      { id: 'u6p8', en: "No, I'm not.", he: 'לא, אני לא.', tr: 'נו, איים נוט', emoji: '👎' },
     ],
     dialogue: {
       turns: [
         { julia: 'How do you feel today?', he: 'איך את מרגישה היום?', answers: ['u6p1'], distract: ['u6p3'] },
-        { julia: "It's lunch time! Are you hungry?", he: 'זמן ארוחת צהריים! את רעבה?', answers: ['u6p2', 'u5p4'], distract: ['u6p4'] },
-        { julia: "It's very late. Are you tired?", he: 'כבר מאוחר מאוד. את עייפה?', answers: ['u6p3', 'u5p4', 'u5p5'], distract: ['u6p2'] },
+        { julia: "It's lunch time! Are you hungry?", he: 'זמן ארוחת צהריים! את רעבה?', answers: ['u6p2', 'u6p7'], distract: ['u6p4'] },
+        { julia: "It's very late. Are you tired?", he: 'כבר מאוחר מאוד. את עייפה?', answers: ['u6p3', 'u6p7', 'u6p8'], distract: ['u6p2'] },
         { julia: "I'm so happy to be with you!", he: 'אני כל כך שמחה להיות איתך!', answers: ['u6p5', 'u6p6'], distract: ['u6p4'] },
       ],
-      end: { julia: 'I love you too, sweetie!', he: 'גם אני אוהבת אותך, מתוקה!' },
+      end: { julia: "I love you, sweetie! I'm so happy too!", he: 'אני אוהבת אותך, מתוקה! גם אני כל כך שמחה!' },
     },
   },
   {
@@ -190,7 +192,7 @@ export const FINAL = {
       { julia: 'Ask me something!', he: 'תשאלי אותי משהו!', task: 'תשאלי איך הייתה הטיסה', answers: ['u7p1'], distract: ['u3p4'] },
       { julia: 'It was very, very long! I am tired and hungry.', fast: true, he: 'היא הייתה ממש ממש ארוכה! אני עייפה ורעבה.', answers: ['u2p2', 'u2p3', 'u2p1'], distract: ['u8p1'] },
       { julia: 'I am tired... and hungry!', he: 'אני עייפה... ורעבה!', answers: ['u6p2', 'u1p6'], distract: ['u8p3'] },
-      { julia: 'Your English is amazing! Who taught you?', he: 'האנגלית שלך מדהימה! מי לימד אותך?', answers: ['u3p5', 'u2p7'], distract: ['u4p6'] },
+      { julia: 'Your English is amazing!', he: 'האנגלית שלך מדהימה!', answers: ['u3p5', 'u2p7'], distract: ['u4p6'] },
       { julia: 'I have a present for you!', he: 'יש לי מתנה בשבילך!', pic: '🎁', answers: ['u8p2'], distract: ['u5p5'] },
       { julia: 'What do you want to do at home?', he: 'מה את רוצה לעשות בבית?', answers: ['u8p4', 'u8p3'], distract: ['u7p3'] },
     ],

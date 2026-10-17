@@ -2,6 +2,7 @@
 
 const PREFERRED = ['Samantha', 'Google US English', 'Ava', 'Allison', 'Zira', 'Jenny', 'Aria'];
 const LISTEN_TIMEOUT_MS = 7000;
+const START_TIMEOUT_MS = 20000; // covers the first-time permission prompt
 
 let voices = [];
 let enVoice = null;
@@ -21,6 +22,19 @@ export function initSpeech() {
   if (!('speechSynthesis' in window)) return;
   pickVoices();
   window.speechSynthesis.addEventListener?.('voiceschanged', pickVoices);
+}
+
+/** iOS only lets audio start inside a tap: speak silence on the first one. */
+export function unlockAudioOnFirstTap() {
+  const unlock = () => {
+    if (canSpeak()) {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    }
+    window.removeEventListener('pointerdown', unlock, true);
+  };
+  window.addEventListener('pointerdown', unlock, true);
 }
 
 export function canSpeak() {
@@ -67,8 +81,16 @@ const Recognition = typeof window !== 'undefined'
   ? window.SpeechRecognition || window.webkitSpeechRecognition
   : null;
 
+let micDenied = false;
+let activeFinish = null;
+
 export function canListen() {
-  return Boolean(Recognition) && window.isSecureContext !== false;
+  return Boolean(Recognition) && window.isSecureContext !== false && !micDenied;
+}
+
+/** Stop any recognition in progress; its listen() promise resolves to []. */
+export function cancelListen() {
+  activeFinish?.([]);
 }
 
 /**
@@ -86,15 +108,22 @@ export function listen() {
     rec.interimResults = false;
     rec.maxAlternatives = 5;
     let settled = false;
+    let timer = setTimeout(() => finish([]), START_TIMEOUT_MS);
     const finish = (value, error) => {
       if (settled) return;
       settled = true;
+      activeFinish = null;
       clearTimeout(timer);
       try { rec.abort(); } catch { /* already stopped */ }
       if (error) reject(error);
       else resolve(value);
     };
-    const timer = setTimeout(() => finish([]), LISTEN_TIMEOUT_MS);
+    cancelListen();
+    activeFinish = finish;
+    rec.onstart = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => finish([]), LISTEN_TIMEOUT_MS);
+    };
     rec.onresult = (e) => {
       const alts = [];
       for (const result of e.results) {
@@ -103,7 +132,10 @@ export function listen() {
       finish(alts);
     };
     rec.onerror = (e) => {
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') finish(null, { code: 'denied' });
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        micDenied = true;
+        finish(null, { code: 'denied' });
+      }
       else finish([]);
     };
     rec.onend = () => finish([]);

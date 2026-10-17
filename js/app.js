@@ -2,7 +2,7 @@
 import { load, save } from './store.js';
 import { UNITS, FINAL, findPhrase } from './content.js';
 import { profileVars, resolvePhrase, fill } from './profile.js';
-import { initSpeech, speak } from './speech.js';
+import { initSpeech, speak, unlockAudioOnFirstTap } from './speech.js';
 import { setSoundEnabled } from './sfx.js';
 import { renderHome } from './screens/home.js';
 import { renderOnboarding } from './screens/onboarding.js';
@@ -26,7 +26,7 @@ const ctx = {
   },
   vars() { return profileVars(state.profile); },
   fill(text) { return fill(text, this.vars()); },
-  phrase(id) { return resolvePhrase(findPhrase(id), this.vars()); },
+  phrase(id) { return resolvePhrase(findPhrase(id), this.vars()); }, // null if unknown
   unit(id) { return id === FINAL.id ? FINAL : UNITS.find((u) => u.id === id); },
   unitIndex(id) { return id === FINAL.id ? UNITS.length : UNITS.findIndex((u) => u.id === id); },
   showTr(unitId) {
@@ -56,6 +56,7 @@ const ctx = {
 
 function boot() {
   initSpeech();
+  unlockAudioOnFirstTap();
   setSoundEnabled(state.settings.sound);
   ctx.go(state.onboarded ? 'home' : 'onboarding');
   if ('serviceWorker' in navigator && location.protocol === 'https:') {

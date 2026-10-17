@@ -76,12 +76,14 @@ function say(el, step, api) {
     try {
       alts = await listen();
     } catch (err) {
+      if (!el.isConnected) return;
       mic.classList.remove('listening');
       hint.textContent = 'צריך לאשר מיקרופון בדפדפן. בינתיים: תגידי בקול ולחצי "אמרתי!"';
       el.querySelector('[data-self]').textContent = '✅ אמרתי!';
       el.querySelector('[data-self]').className = 'btn mint';
       return;
     }
+    if (!el.isConnected) return; // step already left (skipped / closed)
     mic.classList.remove('listening');
     heard.textContent = alts[0] ? `שמעתי: "${alts[0]}"` : '';
     if (isMatch(p.en, alts, api.ctx.names())) {

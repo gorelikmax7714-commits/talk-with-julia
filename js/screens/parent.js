@@ -1,5 +1,5 @@
 // Parent area: progress at a glance, profile + settings, mic test, reset.
-import { progress, totalStars, initialState, lessonList } from '../store.js';
+import { progress, totalStars, initialState, lessonList, currentStreak } from '../store.js';
 import { dueIds, addDays } from '../srs.js';
 import { AGES, COLORS, ANIMALS, FOODS, HOBBIES, SIBLINGS } from '../profile.js';
 import { canListen, listen, speak } from '../speech.js';
@@ -43,7 +43,7 @@ export function renderParent(ctx) {
     <div class="stat-grid">
       <div class="stat"><b>${prog.done}/${prog.total}</b><span>שיעורים הושלמו</span></div>
       <div class="stat"><b>${learned}</b><span>משפטים נלמדו</span></div>
-      <div class="stat"><b>🔥 ${state.streak.count}</b><span>ימים ברצף</span></div>
+      <div class="stat"><b>🔥 ${currentStreak(state.streak, today())}</b><span>ימים ברצף</span></div>
       <div class="stat"><b>⭐ ${totalStars(state)}</b><span>כוכבים · ${due} לחזרה</span></div>
     </div>
     <div class="card" style="margin-bottom:16px"><b>7 הימים האחרונים</b><div class="week">${weekHtml(state.log)}</div>

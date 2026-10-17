@@ -18,7 +18,7 @@ export function renderResults(ctx, { lesson, stars, review, count, spoken, chat,
   let title = 'סיימת שיעור! 🎉';
   if (review) title = `חזרת על ${count} משפטים! 🔁`;
   else if (lesson?.unitId === FINAL.id) title = 'את מוכנה ליום הגדול! 🏆';
-  else if (chat) title = `דיברת עם ${ctx.state.profile.auntHe}! 💬`;
+  else if (chat) title = `דיברת עם ${esc(ctx.state.profile.auntHe)}! 💬`;
 
   const starRow = [1, 2, 3].map((n, i) => `<span class="${n <= stars ? '' : 'off'}" style="animation-delay:${0.2 + i * 0.18}s">⭐</span>`).join('');
   const stamp = finishedUnit

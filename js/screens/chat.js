@@ -3,7 +3,7 @@
 import { completeLesson, starsFor } from '../store.js';
 import { shuffle } from '../lesson.js';
 import { whichSaid, isMatch } from '../match.js';
-import { canListen, listen, stopSpeaking } from '../speech.js';
+import { canListen, listen, stopSpeaking, cancelListen } from '../speech.js';
 import { esc, mount, on, today, wait, confetti } from '../ui/dom.js';
 import { juliaSvg, setTalking } from '../ui/julia.js';
 import { sfx } from '../sfx.js';
@@ -39,6 +39,7 @@ export function startChat(ctx, lesson) {
     if (!confirm('לצאת מהשיחה?')) return;
     closed = true;
     stopSpeaking();
+    cancelListen();
     ctx.go('home');
   });
 
@@ -57,6 +58,7 @@ export function startChat(ctx, lesson) {
     const typing = add('•••', 'msg julia typing');
     await wait(650);
     typing.remove();
+    if (closed) return null;
     const heHtml = showHe
       ? `<div class="he">${esc(he)}</div>`
       : `<div class="tools"><button data-show-he>🇮🇱 מה היא אמרה?</button><button data-again>🔊</button><button data-slow>🐢</button></div>`;
@@ -84,19 +86,28 @@ export function startChat(ctx, lesson) {
       zone.innerHTML = `<div class="mic-hint" style="text-align:center">עכשיו תגידי את זה בקול ל${esc(profile.auntHe)} 🎤</div>
         <button class="mic-small" data-mic>🎤 לדבר</button>
         <button class="btn ghost" data-skip>המשך בלי לדבר ←</button>`;
-      on(zone, '[data-skip]', 'click', () => resolve());
+      let finished = false;
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        cancelListen();
+        resolve();
+      };
+      on(zone, '[data-skip]', 'click', done);
       let tries = 0;
       on(zone, '[data-mic]', 'click', async (e, mic) => {
+        if (mic.classList.contains('listening')) return;
         mic.classList.add('listening');
         let alts = [];
         try { alts = await listen(); } catch { alts = []; }
+        if (finished || closed) return;
         mic.classList.remove('listening');
         tries += 1;
         if (isMatch(phrase.en, alts, ctx.names()) || tries >= 2) {
           spoken += 1;
           bubble.insertAdjacentHTML('beforeend', '<span class="star-bonus">⭐</span>');
           sfx.correct();
-          resolve();
+          done();
         } else {
           sfx.oops();
           zone.querySelector('.mic-hint').textContent = 'כמעט! נסי עוד פעם 🙂';
@@ -111,11 +122,15 @@ export function startChat(ctx, lesson) {
       const options = shuffle([...right, ...turn.distract.map((id) => ctx.phrase(id))]);
       const tr = ctx.showTr(lesson.unitId);
       let misses = 0;
+      let settled = false;
       zone.innerHTML = `<div class="options">${options.map((o, i) => `
         <button class="opt en-opt" data-i="${i}"><span class="oe">${o.emoji}</span><span class="ot en">${esc(o.en)}${tr ? `<small dir="rtl">${esc(o.tr)}</small>` : ''}</span></button>`).join('')}</div>
         ${canListen() ? '<button class="mic-small" data-mic>🎤 לענות בקול</button><div class="mic-hint" style="text-align:center"></div>' : ''}`;
 
       const accept = async (phrase, viaVoice) => {
+        if (settled || closed) return;
+        settled = true;
+        cancelListen();
         zone.innerHTML = '';
         const bubble = add(`<span>${esc(phrase.en)}</span>`, 'msg me');
         sfx.correct();
@@ -130,6 +145,7 @@ export function startChat(ctx, lesson) {
       };
 
       const reject = (btn) => {
+        if (settled || closed) return;
         mistakes += 1;
         misses += 1;
         sfx.oops();
@@ -150,10 +166,12 @@ export function startChat(ctx, lesson) {
       });
       on(zone, '[data-mic]', 'click', async (e, mic) => {
         const hint = zone.querySelector('.mic-hint');
+        if (mic.classList.contains('listening')) return;
         mic.classList.add('listening');
         hint.textContent = 'מקשיבה… 👂';
         let alts = [];
         try { alts = await listen(); } catch { hint.textContent = 'צריך לאשר מיקרופון. אפשר גם ללחוץ על תשובה.'; }
+        if (settled || closed) return;
         mic.classList.remove('listening');
         const i = whichSaid(options.map((o) => o.en), alts, ctx.names());
         if (i < 0) {
@@ -173,6 +191,7 @@ export function startChat(ctx, lesson) {
       const t = turns[i];
       bar.style.width = `${(i / turns.length) * 100}%`;
       const msg = await juliaSays(ctx.fill(t.julia), ctx.fill(t.he), t);
+      if (closed) return;
       if (t.task) add(`🎯 ${esc(ctx.fill(t.task))}`, 'task');
       await askTurn(t, msg);
     }
@@ -182,9 +201,11 @@ export function startChat(ctx, lesson) {
     const end = unit.dialogue.end;
     await juliaSays(ctx.fill(end.julia), ctx.fill(end.he));
     await wait(1200);
+    if (closed) return;
     sfx.win();
     confetti();
     await wait(1400);
+    if (closed) return;
     const stars = starsFor(mistakes);
     ctx.update((s) => completeLesson(s, lesson.id, { stars, today: today() }));
     ctx.go('results', { lesson, stars, spoken, chat: true });

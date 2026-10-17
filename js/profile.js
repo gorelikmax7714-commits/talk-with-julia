@@ -1,11 +1,11 @@
 // Personal answers Gaia chooses once; lessons are filled with HER real facts.
 
 export const AGES = {
-  7: { en: 'seven', tr: 'סבן' },
-  8: { en: 'eight', tr: 'אייט' },
-  9: { en: 'nine', tr: 'ניין' },
-  10: { en: 'ten', tr: 'טן' },
-  11: { en: 'eleven', tr: 'אילבן' },
+  7: { en: 'seven', tr: 'סבן', grade: 'second', gradeHe: "ב'", gradeTr: 'סקנד' },
+  8: { en: 'eight', tr: 'אייט', grade: 'third', gradeHe: "ג'", gradeTr: "ת'רד" },
+  9: { en: 'nine', tr: 'ניין', grade: 'fourth', gradeHe: "ד'", gradeTr: "פורת'" },
+  10: { en: 'ten', tr: 'טן', grade: 'fifth', gradeHe: "ה'", gradeTr: "פיפת'" },
+  11: { en: 'eleven', tr: 'אילבן', grade: 'sixth', gradeHe: "ו'", gradeTr: "סיקסת'" },
 };
 
 export const COLORS = {
@@ -19,7 +19,7 @@ export const COLORS = {
 
 export const ANIMALS = {
   dog: { he: 'הכלב', tr: 'דוג', emoji: '🐶' },
-  cat: { he: 'החתול', tr: 'קט', emoji: '🐱' },
+  cat: { he: 'החתול', tr: 'קאט', emoji: '🐱' },
   horse: { he: 'הסוס', tr: 'הורס', emoji: '🐴' },
   rabbit: { he: 'הארנב', tr: 'רביט', emoji: '🐰' },
   dolphin: { he: 'הדולפין', tr: 'דולפין', emoji: '🐬' },
@@ -36,7 +36,7 @@ export const FOODS = {
 };
 
 export const HOBBIES = {
-  draw: { he: 'לצייר', tr: 'דרואו', emoji: '🎨' },
+  draw: { he: 'לצייר', tr: 'דרו', emoji: '🎨' },
   dance: { he: 'לרקוד', tr: 'דאנס', emoji: '💃' },
   swim: { he: 'לשחות', tr: 'סווים', emoji: '🏊‍♀️' },
   sing: { he: 'לשיר', tr: 'סינג', emoji: '🎤' },
@@ -78,7 +78,8 @@ export function profileVars(profile) {
     aunt: p.aunt, auntHe: p.auntHe,
     auntCity: p.auntCity, auntCityHe: p.auntCityHe,
     city: p.city, cityHe: p.cityHe,
-    age: String(p.age), ageEn: age.en, ageTr: age.tr,
+    age: String(age === AGES[p.age] ? p.age : 9), ageEn: age.en, ageTr: age.tr,
+    gradeEn: age.grade, gradeHe: age.gradeHe, gradeTr: age.gradeTr,
     color: p.color in COLORS ? p.color : 'pink', colorHe: color.he, colorTr: color.tr, colorEmoji: color.emoji,
     animal: p.animal in ANIMALS ? p.animal : 'dog', animalHe: animal.he, animalTr: animal.tr, animalEmoji: animal.emoji,
     food: p.food in FOODS ? p.food : 'pizza', foodHe: food.he, foodTr: food.tr, foodEmoji: food.emoji,
@@ -95,6 +96,7 @@ export function fill(text, vars) {
 
 /** Return a new phrase object with all text fields filled. */
 export function resolvePhrase(phrase, vars) {
+  if (!phrase) return null;
   return {
     ...phrase,
     en: fill(phrase.en, vars),

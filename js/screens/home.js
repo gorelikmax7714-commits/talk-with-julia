@@ -1,6 +1,6 @@
 // Home: countdown postcard with Julia's flight, today's lesson, the journey map.
 import { UNITS, FINAL } from '../content.js';
-import { lessonList, nextLesson, progress, totalStars, isUnlocked, unitDone } from '../store.js';
+import { lessonList, nextLesson, progress, totalStars, isUnlocked, unitDone, currentStreak } from '../store.js';
 import { daysBetween, dueIds } from '../srs.js';
 import { esc, mount, on, today, sheet, starsText } from '../ui/dom.js';
 import { navHtml, bindNav, openLesson } from '../ui/nav.js';
@@ -135,7 +135,7 @@ export function renderHome(ctx) {
   <div class="enter">
     <header class="topbar">
       <div class="hello">היי ${esc(state.profile.nameHe)}! 👋<small>בואי נתכונן לביקור של ${esc(state.profile.auntHe)}</small></div>
-      <div class="stats"><span class="chip">🔥 ${state.streak.count}</span><span class="chip">⭐ ${totalStars(state)}</span></div>
+      <div class="stats"><span class="chip">🔥 ${currentStreak(state.streak, today())}</span><span class="chip">⭐ ${totalStars(state)}</span></div>
     </header>
     ${countdownHtml(ctx)}
     ${todayHtml(ctx)}
@@ -145,7 +145,10 @@ export function renderHome(ctx) {
   ${navHtml('home')}`);
   bindNav(root, ctx);
   on(root, '[data-start]', 'click', (e, el) => openLesson(ctx, lessonList().find((l) => l.id === el.dataset.start)));
-  on(root, '[data-review]', 'click', () => ctx.go('review'));
+  on(root, '[data-review]', 'click', (e, el) => {
+    el.disabled = true;
+    ctx.go('review');
+  });
   on(root, '[data-unit]', 'click', (e, el) => {
     const first = lessonList().find((l) => l.unitId === el.dataset.unit);
     if (!isUnlocked(ctx.state, first.id)) {

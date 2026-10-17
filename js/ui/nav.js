@@ -17,6 +17,12 @@ export function bindNav(root, ctx) {
 }
 
 /** Open a lesson in the right player. */
+let lastOpen = 0;
+const OPEN_GUARD_MS = 1000;
+
 export function openLesson(ctx, lesson) {
+  const now = Date.now();
+  if (!lesson || now - lastOpen < OPEN_GUARD_MS) return;
+  lastOpen = now;
   ctx.go(lesson.kind === 'chat' ? 'chat' : 'lesson', { lesson });
 }

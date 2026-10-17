@@ -13,8 +13,8 @@ function grid(key, table, current, labelOf) {
 
 const STEPS = [
   {
-    render: (p) => `${juliaSvg()}<h1>היי ${esc(p.nameHe)}!</h1>
-      <p>${esc(p.auntHe)} מגיעה מאמריקה ב־18.12 ✈️<br>בואי נתאמן כדי שתוכלי לדבר איתה באנגלית!</p>
+    render: (p, s) => `${juliaSvg()}<h1>היי ${esc(p.nameHe)}!</h1>
+      <p>${esc(p.auntHe)} מגיעה מ${esc(p.auntCityHe)} ב־${s.arrival.split('-').reverse().slice(0, 2).join('.')} ✈️<br>בואי נתאמן כדי שתוכלי לדבר איתה באנגלית!</p>
       <p style="font-size:.95rem">כל יום שיעור קצר — 10 דקות. מקשיבים, מדברים, ומשחקים.</p>`,
     cta: 'יאללה, מתחילים!',
   },
@@ -51,7 +51,7 @@ export function renderOnboarding(ctx, idx = 0) {
     <div class="airmail-top"></div>
     <div class="ob enter">
       <div class="ob-dots">${dots}</div>
-      <div>${step.render(p)}</div>
+      <div>${step.render(p, ctx.state.settings)}</div>
       <button class="btn red" data-go>${step.cta || 'הבא ←'}</button>
       ${idx > 0 ? '<button class="btn ghost" data-back>→ חזרה</button>' : ''}
     </div>`);

@@ -4,7 +4,7 @@ import { normalize, scoreOne, isMatch, whichSaid, levenshtein } from '../js/matc
 import { introduce, review, dueIds, addDays, daysBetween, MAX_BOX } from '../js/srs.js';
 import {
   initialState, completeLesson, applyReviews, updateStreak, isUnlocked, nextLesson,
-  lessonList, starsFor, load, save, progress, unitDone,
+  lessonList, starsFor, load, save, progress, unitDone, currentStreak,
 } from '../js/store.js';
 import { buildLearnSteps, buildReviewSteps, buildIsCorrect, wordsOf, shuffle } from '../js/lesson.js';
 import { UNITS, FINAL, findPhrase, allPhrases } from '../js/content.js';
@@ -176,4 +176,37 @@ test('profileVars falls back on unknown choices', () => {
   const v = profileVars({ color: 'plaid', age: 42 });
   assert.equal(v.color, 'pink');
   assert.equal(v.ageEn, 'nine');
+});
+
+// ---------- review fixes ----------
+test('contractions without apostrophes still match', () => {
+  assert.ok(isMatch("Let's play!", ['lets play']));
+  assert.ok(isMatch("I don't understand.", ['i dont understand']));
+  assert.ok(isMatch("I'm happy!", ['im happy']));
+});
+
+test('displayed streak drops to 0 after a missed day', () => {
+  assert.equal(currentStreak({ count: 5, last: '2026-10-16' }, '2026-10-17'), 5);
+  assert.equal(currentStreak({ count: 5, last: '2026-10-14' }, '2026-10-17'), 0);
+  assert.equal(currentStreak({ count: 0, last: null }, '2026-10-17'), 0);
+});
+
+test('grade follows age', () => {
+  assert.equal(profileVars({ age: 9 }).gradeEn, 'fourth');
+  assert.equal(profileVars({ age: 10 }).gradeHe, "ה'");
+  assert.equal(resolvePhrase(findPhrase('u3p2'), profileVars({ age: 8 })).en, "I'm in third grade.");
+});
+
+test('unknown phrases resolve to null and are dropped on load', () => {
+  assert.equal(resolvePhrase(undefined, profileVars({})), null);
+  const mem = new Map([['talk-with-julia-v1', JSON.stringify({ cards: { gone: { box: 1, due: 'x' }, u1p1: { box: 1, due: 'x' } } })]]);
+  const loaded = load({ getItem: (k) => mem.get(k) ?? null });
+  assert.deepEqual(Object.keys(loaded.cards), ['u1p1']);
+});
+
+test('feelings questions are answered with "Yes, I am" not "Yes, I do"', () => {
+  const u6 = UNITS.find((u) => u.id === 'u6');
+  u6.dialogue.turns.filter((t) => /Are you/.test(t.julia)).forEach((t) => {
+    assert.ok(!t.answers.includes('u5p4') && !t.answers.includes('u5p5'));
+  });
 });

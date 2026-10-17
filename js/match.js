@@ -7,6 +7,12 @@ const CONTRACTIONS = {
   "you're": 'you are', "it's": 'it is', "that's": 'that is', "i'll": 'i will',
   "can't": 'can not', cannot: 'can not', "didn't": 'did not', "isn't": 'is not',
 };
+// Recognisers often drop the apostrophe ("lets play", "i dont").
+Object.keys(CONTRACTIONS).forEach((k) => {
+  const bare = k.replace(/'/g, '');
+  if (!(bare in CONTRACTIONS) && !['its', 'ill', 'cant'].includes(bare)) CONTRACTIONS[bare] = CONTRACTIONS[k];
+});
+CONTRACTIONS.cant = 'can not';
 
 const DIGITS = {
   0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six',

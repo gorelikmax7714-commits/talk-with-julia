@@ -1,5 +1,5 @@
 // App state: pure update functions + a thin localStorage wrapper.
-import { UNITS, FINAL } from './content.js';
+import { UNITS, FINAL, findPhrase } from './content.js';
 import { introduce, review, addDays } from './srs.js';
 import { DEFAULT_PROFILE } from './profile.js';
 
@@ -70,6 +70,12 @@ export function updateStreak(streak, today) {
   return { count: continues ? streak.count + 1 : 1, last: today };
 }
 
+/** Streak as shown today: it only counts if she practised today or yesterday. */
+export function currentStreak(streak, today) {
+  if (!streak.last) return 0;
+  return streak.last === today || addDays(streak.last, 1) === today ? streak.count : 0;
+}
+
 export function completeLesson(state, lessonId, { stars, phraseIds = [], today }) {
   const prev = state.lessons[lessonId];
   const cards = { ...state.cards };
@@ -103,6 +109,7 @@ export function load(storage = globalThis.localStorage) {
     return {
       ...base,
       ...saved,
+      cards: Object.fromEntries(Object.entries(saved.cards || {}).filter(([id]) => findPhrase(id))),
       profile: { ...base.profile, ...saved.profile },
       settings: { ...base.settings, ...saved.settings },
     };

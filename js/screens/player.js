@@ -5,7 +5,7 @@ import { dueIds } from '../srs.js';
 import { UNITS } from '../content.js';
 import { esc, mount, on, today } from '../ui/dom.js';
 import { renderStep } from './steps.js';
-import { stopSpeaking } from '../speech.js';
+import { stopSpeaking, cancelListen } from '../speech.js';
 import { sfx } from '../sfx.js';
 
 const PRAISE = [
@@ -19,6 +19,11 @@ function learnedPhrases(ctx, excludeIds = []) {
     .filter((id) => !excludeIds.includes(id))
     .map((id) => ctx.phrase(id))
     .filter((p) => p && p.en);
+}
+
+function uniqueById(list) {
+  const seen = new Set();
+  return list.filter((p) => p && !seen.has(p.id) && seen.add(p.id));
 }
 
 function unitPhrases(ctx, unitId) {
@@ -40,6 +45,7 @@ function run(ctx, { steps, unitId, onDone }) {
   on(root, '[data-close]', 'click', () => {
     if (confirm('לצאת מהשיעור? ההתקדמות בשיעור הזה לא תישמר.')) {
       stopSpeaking();
+      cancelListen();
       ctx.go('home');
     }
   });
@@ -61,11 +67,12 @@ function run(ctx, { steps, unitId, onDone }) {
       : `<div class="fb-title">🤏 כמעט! התשובה הנכונה:</div>
          <div class="fb-answer"><b class="en">${esc(p.en)}</b><br>${esc(p.he)}</div>
          <button class="btn orange" data-cont>הבנתי ←</button>`;
-    document.body.appendChild(box);
+    root.appendChild(box); // lives inside #app, so leaving the lesson removes it
     box.querySelector('[data-cont]').addEventListener('click', () => {
+      if (!box.isConnected) return;
       box.remove();
       next();
-    });
+    }, { once: true });
     if (good) {
       sfx.correct();
       if (opts.speak) ctx.say(p.en);
@@ -75,28 +82,40 @@ function run(ctx, { steps, unitId, onDone }) {
     }
   };
 
-  const api = {
-    ctx,
-    unitId,
-    correct(opts = {}) {
-      record(true);
-      feedback(true, opts);
-    },
-    wrong() {
-      record(false);
-      mistakes += 1;
-      feedback(false);
-    },
-    next: () => next(),
-  };
+  // A fresh api per step: the first outcome wins, so double taps or a late
+  // speech result can never answer the step twice or touch the next one.
+  function stepApi() {
+    let settled = false;
+    const once = (fn) => (...args) => {
+      if (settled) return;
+      settled = true;
+      cancelListen();
+      fn(...args);
+    };
+    return {
+      ctx,
+      unitId,
+      correct: once((opts = {}) => {
+        record(true);
+        feedback(true, opts);
+      }),
+      wrong: once(() => {
+        record(false);
+        mistakes += 1;
+        feedback(false);
+      }),
+      next: once(() => next()),
+    };
+  }
 
   function show() {
     bar.style.width = `${(idx / steps.length) * 100}%`;
     stage.innerHTML = '<div class="step"></div>';
-    renderStep(stage.firstChild, steps[idx], api);
+    renderStep(stage.firstChild, steps[idx], stepApi());
   }
 
   function next() {
+    if (!root.isConnected || !stage.isConnected) return;
     stopSpeaking();
     idx += 1;
     if (idx >= steps.length) {
@@ -118,7 +137,7 @@ export function startLesson(ctx, lesson) {
     ...shuffle(learned.filter((p) => due.has(p.id))),
     ...shuffle(learned.filter((p) => !due.has(p.id))),
   ].slice(0, REVIEW_EXTRA);
-  const pool = [...learned, ...unitPhrases(ctx, lesson.unitId)];
+  const pool = uniqueById([...learned, ...unitPhrases(ctx, lesson.unitId)]);
   const steps = buildLearnSteps(fresh, reviewPick, pool);
   run(ctx, {
     steps,
@@ -137,14 +156,14 @@ export function startLesson(ctx, lesson) {
 }
 
 export function startReview(ctx) {
-  const ids = dueIds(ctx.state.cards, today());
+  const ids = dueIds(ctx.state.cards, today()).filter((id) => ctx.phrase(id));
   if (!ids.length) {
     ctx.go('home');
     return;
   }
   const phrases = ids.map((id) => ctx.phrase(id));
   const pool = learnedPhrases(ctx);
-  const steps = buildReviewSteps(phrases, pool.length >= 3 ? pool : [...pool, ...unitPhrases(ctx, 'u1')]);
+  const steps = buildReviewSteps(phrases, pool.length >= 3 ? pool : uniqueById([...pool, ...unitPhrases(ctx, 'u1')]));
   run(ctx, {
     steps,
     unitId: 'u1',
